@@ -27,5 +27,6 @@ data class NoteEntity(
     val isPinned: Boolean = false,
     val isLocked: Boolean = false,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    val imagePath: String? = null
 )

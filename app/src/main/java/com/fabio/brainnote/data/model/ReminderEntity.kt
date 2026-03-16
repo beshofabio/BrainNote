@@ -1,6 +1,7 @@
 package com.fabio.brainnote.data.model
 
 import androidx.room.*
+import com.fabio.brainnote.domain.RepeatType
 
 @Entity(
     tableName = "reminders",
@@ -19,5 +20,5 @@ data class ReminderEntity(
     val id: Long = 0,
     val noteId: Long,
     val triggerTime: Long,
-    val repeatType: String?
+    val repeatType: RepeatType?
 )

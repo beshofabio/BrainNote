@@ -43,6 +43,10 @@ android {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // Core & Lifecycle
     implementation(libs.androidx.core.ktx)
@@ -58,6 +62,7 @@ dependencies {
 
     // Hilt (Dependency Injection)
     implementation(libs.dagger.hilt.android)
+    implementation(libs.androidx.constraintlayout)
     ksp(libs.dagger.hilt.compiler) // Using ksp instead of kapt
     implementation(libs.androidx.hilt.navigation.compose)
 
