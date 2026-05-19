@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.dagger.hilt.android)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -63,6 +64,7 @@ dependencies {
     // Hilt (Dependency Injection)
     implementation(libs.dagger.hilt.android)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.play.services.maps)
     ksp(libs.dagger.hilt.compiler) // Using ksp instead of kapt
     implementation(libs.androidx.hilt.navigation.compose)
 
@@ -71,6 +73,16 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler) // Using ksp instead of kapt
 
+    //Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    implementation (libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.coil.compose)
+
+    implementation(libs.androidx.activity.compose.v182)
+
+    implementation(libs.androidx.material3)
     // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

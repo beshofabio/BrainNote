@@ -5,8 +5,9 @@ import com.fabio.brainnote.domain.model.Note
 import com.fabio.brainnote.domain.repo.NoteRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class UpsertNoteUseCase(
+class UpsertNoteUseCase @Inject constructor(
     private val repository: NoteRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {

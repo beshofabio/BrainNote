@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReminderDao {
-    @Query("SELECT * FROM reminders WHERE noteId = :noteId")
+    @Query("SELECT * FROM ${ReminderEntity.TABLE_NAME} WHERE ${ReminderEntity.COLUMN_NOTE_ID} = :noteId")
     fun getRemindersForNote(noteId: Long): Flow<List<ReminderEntity>>
 
     @Upsert
     suspend fun upsertReminder(reminder: ReminderEntity): Long
 
-    @Query("DELETE FROM reminders WHERE id = :id")
+    @Query("DELETE FROM ${ReminderEntity.TABLE_NAME} WHERE ${ReminderEntity.COLUMN_ID} = :id")
     suspend fun deleteReminder(id: Long)
 }

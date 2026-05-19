@@ -14,36 +14,36 @@ data class FullNoteDetails(
     @Embedded val note: NoteEntity,
 
     @Relation(
-        parentColumn = "id",
-        entityColumn = "noteId"
+        parentColumn = NoteEntity.COLUMN_ID,
+        entityColumn = ChecklistItemEntity.COLUMN_NOTE_ID
     )
     val checklistItems: List<ChecklistItemEntity>,
 
     @Relation(
-        parentColumn = "id",
-        entityColumn = "noteId"
+        parentColumn = NoteEntity.COLUMN_ID,
+        entityColumn = VoiceNoteEntity.COLUMN_NOTE_ID
     )
     val voiceNotes: List<VoiceNoteEntity>,
 
     @Relation(
-        parentColumn = "id",
-        entityColumn = "noteId"
+        parentColumn = NoteEntity.COLUMN_ID,
+        entityColumn = ReminderEntity.COLUMN_NOTE_ID
     )
     val reminders: List<ReminderEntity>,
 
     @Relation(
-        parentColumn = "categoryId",
-        entityColumn = "id"
+        parentColumn = NoteEntity.COLUMN_CATEGORY_ID,
+        entityColumn = CategoryEntity.COLUMN_ID
     )
     val category: CategoryEntity?,
 
     @Relation(
-        parentColumn = "id",
-        entityColumn = "id",
+        parentColumn = NoteEntity.COLUMN_ID,
+        entityColumn = NoteEntity.COLUMN_ID,
         associateBy = Junction(
             value = NoteLinkEntity::class,
-            parentColumn = "noteId",
-            entityColumn = "linkedToId"
+            parentColumn = NoteLinkEntity.COLUMN_NOTE_ID,
+            entityColumn = NoteLinkEntity.COLUMN_LINKED_TO_ID
         )
     )
     val linkedNotes: List<NoteEntity>

@@ -3,16 +3,16 @@ package com.fabio.brainnote.data.model
 import androidx.room.*
 
 @Entity(
-    tableName = "checklist_items",
+    tableName = ChecklistItemEntity.TABLE_NAME,
     foreignKeys = [
         ForeignKey(
             entity = NoteEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["noteId"],
+            parentColumns = [NoteEntity.COLUMN_ID],
+            childColumns = [ChecklistItemEntity.COLUMN_NOTE_ID],
             onDelete = ForeignKey.CASCADE
         )
     ],
-    indices = [Index("noteId")]
+    indices = [Index(ChecklistItemEntity.COLUMN_NOTE_ID)]
 )
 data class ChecklistItemEntity(
     @PrimaryKey(autoGenerate = true)
@@ -21,4 +21,10 @@ data class ChecklistItemEntity(
     val text: String,
     val isChecked: Boolean = false,
     val position: Int
-)
+) {
+    companion object {
+        const val TABLE_NAME = "checklist_items"
+        const val COLUMN_ID = "id"
+        const val COLUMN_NOTE_ID = "noteId"
+    }
+}

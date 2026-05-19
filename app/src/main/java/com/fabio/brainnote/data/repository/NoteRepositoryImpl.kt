@@ -11,15 +11,21 @@ import kotlinx.coroutines.flow.map
 class NoteRepositoryImpl(
     private val noteDao: NoteDao
 ) : NoteRepository {
+    override fun getNoteById(noteId: Long): Note? {
+        return noteDao.getNoteFullDetails(noteId)?.toDomain()
+    }
+
+    override fun getNotesByCategory(categoryId: Long): Flow<List<Note>> {
+        return noteDao.getNotesFullDetailsByCategory(categoryId)
+            .map { it.toDomain() }
+    }
+
     override fun getEntireNoteFullDetails(rootId: Long): Flow<List<Note>> {
         return noteDao.getClusterNotes(rootId)
             .map { it.toDomain() }
     }
+
     override suspend fun upsertNote(note: Note): Long {
         return noteDao.upsertNote(note.toEntity())
-    }
-
-    override suspend fun updateNoteImage(noteId: Long, path: String?) {
-        noteDao.updateNoteImage(noteId, path)
     }
 }

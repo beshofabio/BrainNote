@@ -2,8 +2,9 @@ package com.fabio.brainnote.domain.usecase.checklistitem
 
 import com.fabio.brainnote.domain.model.ChecklistItem
 import com.fabio.brainnote.domain.repo.ChecklistRepository
+import javax.inject.Inject
 
-class UpsertChecklistItemUseCase(
+class UpsertChecklistItemUseCase @Inject constructor(
     private val repository: ChecklistRepository
 ) {
 

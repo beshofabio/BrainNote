@@ -1,5 +1,7 @@
 package com.fabio.brainnote.domain.model
 
+import com.fabio.brainnote.R
+
 data class Note(
     val id: Long = 0,
     val title: String,
@@ -11,7 +13,6 @@ data class Note(
     val createdAt: Long,
     val updatedAt: Long,
     val imagePath: String? = null,
-
     val checklist: List<ChecklistItem> = emptyList(),
     val voiceNotes: List<VoiceNote> = emptyList(),
     val reminders: List<Reminder> = emptyList(),
@@ -25,9 +26,9 @@ val fakeNote = Note(
     content = "Find 10 videos about illustrations to share with classmates next week.",
     category = Category(
         id = 1,
-        name = "Study",
+        name = "Others",
         color = 0xFFFFC34D,
-        icon = "ic_school"
+        icon = R.drawable.others
     ),
     colorPriority = 0xFFFFC34D.toInt(),
     isPinned = true,
@@ -39,19 +40,19 @@ val fakeNote = Note(
     checklist = listOf(
         ChecklistItem(
             id = 1,
-            text = "Search YouTube",
+            text = "YouTube",
             isChecked = true,
             position = 0
         ),
         ChecklistItem(
             id = 2,
-            text = "Check Instagram references",
+            text = "Instagram",
             isChecked = false,
             position = 1
         ),
         ChecklistItem(
             id = 3,
-            text = "Look for Twitter threads",
+            text = "Twitter",
             isChecked = false,
             position = 2
         )
@@ -61,7 +62,7 @@ val fakeNote = Note(
         VoiceNote(
             id = 1,
             audioPath = "/storage/emulated/0/BrainNote/audio_1.m4a",
-            duration = 32000
+            duration = 40
         )
     ),
 

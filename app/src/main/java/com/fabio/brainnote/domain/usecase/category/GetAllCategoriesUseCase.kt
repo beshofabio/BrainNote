@@ -6,8 +6,9 @@ import com.fabio.brainnote.domain.repo.CategoryRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
+import javax.inject.Inject
 
-class GetAllCategoriesUseCase(
+class GetAllCategoriesUseCase @Inject constructor(
     private val repository: CategoryRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {

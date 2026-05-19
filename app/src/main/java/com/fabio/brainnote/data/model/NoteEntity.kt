@@ -6,16 +6,16 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 
 @Entity(
-    tableName = "notes",
+    tableName = NoteEntity.TABLE_NAME,
     foreignKeys = [
         ForeignKey(
             entity = CategoryEntity::class,
-            parentColumns = ["id"],
-            childColumns = ["categoryId"],
+            parentColumns = [CategoryEntity.COLUMN_ID],
+            childColumns = [NoteEntity.COLUMN_CATEGORY_ID],
             onDelete = ForeignKey.SET_NULL
         )
     ],
-    indices = [Index("categoryId")]
+    indices = [Index(NoteEntity.COLUMN_CATEGORY_ID)]
 )
 data class NoteEntity(
     @PrimaryKey(autoGenerate = true)
@@ -29,4 +29,10 @@ data class NoteEntity(
     val createdAt: Long,
     val updatedAt: Long,
     val imagePath: String? = null
-)
+) {
+    companion object {
+        const val TABLE_NAME = "notes"
+        const val COLUMN_ID = "id"
+        const val COLUMN_CATEGORY_ID = "categoryId"
+    }
+}

@@ -36,10 +36,10 @@ fun BrainNoteTheme(
     content: @Composable () -> Unit
 ) {
 
-    val colors = if (darkTheme) DarkColorScheme else LightColorScheme
+    val theme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = theme,
         typography = Typography,
         content = content
     )

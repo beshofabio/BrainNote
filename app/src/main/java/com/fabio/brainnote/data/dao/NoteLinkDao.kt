@@ -11,6 +11,10 @@ interface NoteLinkDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLink(link: NoteLinkEntity)
 
-    @Query("DELETE FROM note_link WHERE noteId = :noteId AND linkedToId = :linkedId")
+    @Query("""
+        DELETE FROM ${NoteLinkEntity.TABLE_NAME} 
+        WHERE ${NoteLinkEntity.COLUMN_NOTE_ID} = :noteId 
+        AND ${NoteLinkEntity.COLUMN_LINKED_TO_ID} = :linkedId
+    """)
     suspend fun deleteLink(noteId: Long, linkedId: Long)
 }

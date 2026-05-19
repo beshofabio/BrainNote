@@ -8,13 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ChecklistItemDao {
-
-    @Query("SELECT * FROM checklist_items WHERE noteId = :noteId ORDER BY position")
+    @Query("SELECT * FROM ${ChecklistItemEntity.TABLE_NAME} WHERE ${ChecklistItemEntity.COLUMN_NOTE_ID} = :noteId ORDER BY position")
     fun getItemsForNote(noteId: Long): Flow<List<ChecklistItemEntity>>
 
     @Upsert
     suspend fun upsertItem(item: ChecklistItemEntity): Long
 
-    @Query("DELETE FROM checklist_items WHERE id = :id")
+    @Query("DELETE FROM ${ChecklistItemEntity.TABLE_NAME} WHERE ${ChecklistItemEntity.COLUMN_ID} = :id")
     suspend fun deleteItem(id: Long)
 }

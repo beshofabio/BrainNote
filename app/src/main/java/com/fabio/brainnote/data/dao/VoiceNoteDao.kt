@@ -8,13 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface VoiceNoteDao {
-
-    @Query("SELECT * FROM voice_notes WHERE noteId = :noteId")
+    @Query("SELECT * FROM ${VoiceNoteEntity.TABLE_NAME} WHERE ${VoiceNoteEntity.COLUMN_NOTE_ID} = :noteId")
     fun getVoiceNotesForNote(noteId: Long): Flow<List<VoiceNoteEntity>>
 
     @Upsert
     suspend fun upsertVoiceNote(voiceNote: VoiceNoteEntity): Long
 
-    @Query("DELETE FROM voice_notes WHERE id = :id")
+    @Query("DELETE FROM ${VoiceNoteEntity.TABLE_NAME} WHERE ${VoiceNoteEntity.COLUMN_ID} = :id")
     suspend fun deleteVoiceNote(id: Long)
 }
