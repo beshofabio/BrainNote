@@ -65,13 +65,14 @@ dependencies {
     implementation(libs.dagger.hilt.android)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.play.services.maps)
-    ksp(libs.dagger.hilt.compiler) // Using ksp instead of kapt
+    ksp(libs.dagger.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel.compose)
 
     // Room (Database)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler) // Using ksp instead of kapt
+    ksp(libs.androidx.room.compiler)
 
     //Serialization
     implementation(libs.kotlinx.serialization.json)

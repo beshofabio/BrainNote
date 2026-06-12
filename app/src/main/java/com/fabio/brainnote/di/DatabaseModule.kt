@@ -7,6 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.fabio.brainnote.data.dao.CategoryDao
 import com.fabio.brainnote.data.dao.ChecklistItemDao
 import com.fabio.brainnote.data.dao.NoteDao
+import com.fabio.brainnote.data.dao.NoteHistoryDao
 import com.fabio.brainnote.data.dao.NoteLinkDao
 import com.fabio.brainnote.data.dao.ReminderDao
 import com.fabio.brainnote.data.dao.VoiceNoteDao
@@ -26,35 +27,33 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object DatabaseModule {
-
     @Singleton
     @Provides
     fun provideNoteDao(appDatabase: BrainNoteDatabase) : NoteDao = appDatabase.noteDao()
-
 
     @Singleton
     @Provides
     fun provideCategoryDao(appDatabase: BrainNoteDatabase) : CategoryDao = appDatabase.categoryDao()
 
-
     @Singleton
     @Provides
     fun provideCheckListItemDao(appDatabase: BrainNoteDatabase) : ChecklistItemDao = appDatabase.checklistItemDao()
-
 
     @Singleton
     @Provides
     fun provideNoteLinkDao(appDatabase: BrainNoteDatabase) : NoteLinkDao = appDatabase.noteLinkDao()
 
-
     @Singleton
     @Provides
     fun provideReminderDao(appDatabase: BrainNoteDatabase) : ReminderDao = appDatabase.reminderDao()
 
-
     @Singleton
     @Provides
     fun provideVoiceNoteDao(appDatabase: BrainNoteDatabase) : VoiceNoteDao = appDatabase.voiceNoteDao()
+
+    @Singleton
+    @Provides
+    fun provideNoteHistoryDao(appDatabase: BrainNoteDatabase) : NoteHistoryDao = appDatabase.noteHistoryDao()
 
     @Singleton
     @Provides

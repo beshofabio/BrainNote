@@ -4,8 +4,9 @@ import com.fabio.brainnote.data.dao.VoiceNoteDao
 import com.fabio.brainnote.data.mapper.toEntity
 import com.fabio.brainnote.domain.model.VoiceNote
 import com.fabio.brainnote.domain.repo.VoiceNoteRepository
+import javax.inject.Inject
 
-class VoiceNoteRepositoryImpl(
+class VoiceNoteRepositoryImpl @Inject constructor(
     private val dao: VoiceNoteDao
 ) : VoiceNoteRepository {
 

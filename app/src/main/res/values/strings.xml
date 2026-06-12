@@ -1,3 +1,44 @@
 <resources>
     <string name="app_name">BrainNote</string>
+    
+    <!-- Editor Dialogs -->
+    <string name="save_changes_title">Save Changes?</string>
+    <string name="save_changes_msg">Do you want to save the modifications made to this note?</string>
+    <string name="save_btn">Save</string>
+    <string name="cancel_btn">Cancel</string>
+    
+    <string name="delete_note_title">Delete Note</string>
+    <string name="delete_note_msg">This will permanently remove the note and all its attachments (recordings and images). This action cannot be undone.</string>
+    <string name="delete_btn">Delete</string>
+    
+    <string name="discard_edits_title">Discard Edits?</string>
+    <string name="discard_edits_msg">You have unsaved changes. Are you sure you want to discard them and go back?</string>
+    <string name="discard_btn">Discard</string>
+    <string name="keep_editing_btn">Keep Editing</string>
+
+    <string name="empty_note_title">Nothing added</string>
+    <string name="empty_note_msg">Nothing got added to save. Please add some content before saving.</string>
+    <string name="ok_btn">OK</string>
+    
+    <!-- Removal Dialogs -->
+    <string name="remove_checklist_title">Remove Item?</string>
+    <string name="remove_checklist_msg">Are you sure you want to remove this item from the list?</string>
+    <string name="remove_reminder_title">Remove Reminder?</string>
+    <string name="remove_reminder_msg">Are you sure you want to remove this reminder? The scheduled alarm will be cancelled.</string>
+    <string name="remove_voice_title">Remove Recording?</string>
+    <string name="remove_voice_msg">Are you sure you want to remove this voice recording?</string>
+    <string name="remove_btn">Remove</string>
+
+    <!-- Editor Menu -->
+    <string name="menu_history">History</string>
+    <string name="menu_remove">Remove</string>
+    
+    <!-- Checklist -->
+    <string name="checklist_placeholder">List item</string>
+    <string name="add_item_btn">Add item</string>
+    <string name="add_1_more">Add 1 more</string>
+    
+    <!-- General -->
+    <string name="edited_just_now">Edited just now</string>
+    <string name="upcoming_reminder">Upcoming Reminder</string>
 </resources>

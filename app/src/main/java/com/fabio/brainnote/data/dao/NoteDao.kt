@@ -40,4 +40,7 @@ interface NoteDao {
 
     @Upsert
     suspend fun upsertNote(note: NoteEntity): Long
+
+    @Query("DELETE FROM ${NoteEntity.TABLE_NAME} WHERE ${NoteEntity.COLUMN_ID} = :id")
+    suspend fun deleteNote(id: Long)
 }

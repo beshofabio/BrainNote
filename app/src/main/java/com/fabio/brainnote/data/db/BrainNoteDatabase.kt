@@ -3,19 +3,8 @@ package com.fabio.brainnote.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.fabio.brainnote.data.dao.CategoryDao
-import com.fabio.brainnote.data.dao.ChecklistItemDao
-import com.fabio.brainnote.data.dao.NoteDao
-import com.fabio.brainnote.data.dao.NoteLinkDao
-import com.fabio.brainnote.data.dao.ReminderDao
-import com.fabio.brainnote.data.dao.VoiceNoteDao
-import com.fabio.brainnote.data.model.CategoryEntity
-import com.fabio.brainnote.data.model.ChecklistItemEntity
-import com.fabio.brainnote.data.model.NoteEntity
-import com.fabio.brainnote.data.model.NoteHistoryEntity
-import com.fabio.brainnote.data.model.NoteLinkEntity
-import com.fabio.brainnote.data.model.ReminderEntity
-import com.fabio.brainnote.data.model.VoiceNoteEntity
+import com.fabio.brainnote.data.dao.*
+import com.fabio.brainnote.data.model.*
 import com.fabio.brainnote.data.typeconverter.RepeatTypeConverter
 
 
@@ -40,4 +29,5 @@ abstract class BrainNoteDatabase : RoomDatabase() {
     abstract fun reminderDao(): ReminderDao
     abstract fun voiceNoteDao(): VoiceNoteDao
     abstract fun noteLinkDao(): NoteLinkDao
+    abstract fun noteHistoryDao(): NoteHistoryDao
 }

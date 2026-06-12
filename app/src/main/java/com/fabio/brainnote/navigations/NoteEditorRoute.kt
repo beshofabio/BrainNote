@@ -29,17 +29,18 @@ fun NoteEditorRoute(
 
         onImageConfirmed = viewModel::onImageConfirmed,
         onRemoveImage = viewModel::onRemoveImage,
+        onAddReminder = viewModel::onAddReminder,
+        onRemoveReminder = viewModel::onRemoveReminder,
+
         onStartRecording = viewModel::startRecordingAudio,
         onStopRecording = viewModel::stopAndSaveAudio,
         onCancelRecording = viewModel::cancelRecordingAudio,
-        onAddReminder = viewModel::onAddReminder,
+        onRemoveVoiceNote = viewModel::onRemoveVoiceNote,
 
         onPlayPauseAudio = viewModel::onPlayPauseAudio,
         onSeekAudio = viewModel::onSeekAudio,
 
-        onSaveNote = {
-            viewModel.saveNote()
-        },
-        onClearError = viewModel::clearErrorMessage
+        onSaveNote = viewModel::saveNote,
+        onDeleteNote = viewModel::deleteNote
     )
 }

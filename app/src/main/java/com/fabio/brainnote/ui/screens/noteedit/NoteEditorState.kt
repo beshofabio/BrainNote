@@ -2,6 +2,7 @@ package com.fabio.brainnote.ui.screens.noteedit
 
 import com.fabio.brainnote.domain.model.Category
 import com.fabio.brainnote.domain.model.ChecklistItem
+import com.fabio.brainnote.domain.model.NoteHistory
 import com.fabio.brainnote.domain.model.Reminder
 import com.fabio.brainnote.domain.model.VoiceNote
 
@@ -21,8 +22,10 @@ data class NoteEditorState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSaved: Boolean = false,
+    val isEdited: Boolean = false,
     
-    // Playback state
+    val noteHistory: List<NoteHistory> = emptyList(),
+    
     val currentlyPlayingPath: String? = null,
     val isPlaying: Boolean = false,
     val currentPlaybackPosition: Long = 0L,

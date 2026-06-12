@@ -1,55 +1,53 @@
 package com.fabio.brainnote.di
 
-import android.content.Context
-import com.fabio.brainnote.data.dao.CategoryDao
-import com.fabio.brainnote.data.dao.ChecklistItemDao
-import com.fabio.brainnote.data.dao.NoteDao
-import com.fabio.brainnote.data.dao.ReminderDao
-import com.fabio.brainnote.data.dao.VoiceNoteDao
 import com.fabio.brainnote.data.repository.AudioPlayerRepositoryImpl
 import com.fabio.brainnote.data.repository.CategoryRepositoryImpl
 import com.fabio.brainnote.data.repository.ChecklistRepositoryImpl
+import com.fabio.brainnote.data.repository.NoteHistoryRepositoryImpl
 import com.fabio.brainnote.data.repository.NoteRepositoryImpl
 import com.fabio.brainnote.data.repository.ReminderRepositoryImpl
 import com.fabio.brainnote.data.repository.VoiceNoteRepositoryImpl
 import com.fabio.brainnote.domain.repo.AudioPlayerRepository
 import com.fabio.brainnote.domain.repo.CategoryRepository
 import com.fabio.brainnote.domain.repo.ChecklistRepository
+import com.fabio.brainnote.domain.repo.NoteHistoryRepository
 import com.fabio.brainnote.domain.repo.NoteRepository
 import com.fabio.brainnote.domain.repo.ReminderRepository
 import com.fabio.brainnote.domain.repo.VoiceNoteRepository
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-object RepositoryModule {
+abstract class RepositoryModule {
+    @Binds
     @Singleton
-    @Provides
-    fun provideCategoryRepository(categoryDao : CategoryDao) : CategoryRepository = CategoryRepositoryImpl(dao = categoryDao)
+    abstract fun bindCategoryRepository(impl: CategoryRepositoryImpl): CategoryRepository
 
-
+    @Binds
     @Singleton
-    @Provides
-    fun provideChecklistRepository(checklistDao: ChecklistItemDao) : ChecklistRepository = ChecklistRepositoryImpl(dao = checklistDao)
+    abstract fun bindChecklistRepository(impl: ChecklistRepositoryImpl): ChecklistRepository
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideNoteRepository(noteDao: NoteDao) : NoteRepository = NoteRepositoryImpl(noteDao = noteDao)
+    abstract fun bindNoteRepository(impl: NoteRepositoryImpl): NoteRepository
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideReminderRepsotory(reminderDao: ReminderDao) : ReminderRepository = ReminderRepositoryImpl(dao = reminderDao )
+    abstract fun bindReminderRepository(impl: ReminderRepositoryImpl): ReminderRepository
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideVoiceNoteRepository(voiceNoteDao: VoiceNoteDao) : VoiceNoteRepository = VoiceNoteRepositoryImpl(dao = voiceNoteDao)
+    abstract fun bindVoiceNoteRepository(impl: VoiceNoteRepositoryImpl): VoiceNoteRepository
 
+    @Binds
     @Singleton
-    @Provides
-    fun provideAudioPlayerRepository(@ApplicationContext context: Context): AudioPlayerRepository = AudioPlayerRepositoryImpl(context)
+    abstract fun bindAudioPlayerRepository(impl: AudioPlayerRepositoryImpl): AudioPlayerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNoteHistoryRepository(impl: NoteHistoryRepositoryImpl): NoteHistoryRepository
 }

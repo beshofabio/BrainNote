@@ -4,8 +4,9 @@ import com.fabio.brainnote.data.dao.ChecklistItemDao
 import com.fabio.brainnote.data.mapper.toEntity
 import com.fabio.brainnote.domain.model.ChecklistItem
 import com.fabio.brainnote.domain.repo.ChecklistRepository
+import javax.inject.Inject
 
-class ChecklistRepositoryImpl(
+class ChecklistRepositoryImpl @Inject constructor(
     private val dao: ChecklistItemDao
 ) : ChecklistRepository {
 

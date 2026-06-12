@@ -3,12 +3,14 @@ package com.fabio.brainnote.ui.screens.noteedit.components
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -25,20 +27,35 @@ fun EditorChecklistItem(
     item: ChecklistItem,
     onCheckedChange: (Boolean) -> Unit,
     onTextChange: (String) -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val colorScheme = MaterialTheme.colorScheme
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
     ) {
-        CircleCheckbox(title = "", selected = item.isChecked, switchColor = true, onChecked = { onCheckedChange(!item.isChecked) })
-        Spacer(modifier = Modifier.width(8.dp))
+        CircleCheckbox(
+            title = "", 
+            selected = item.isChecked, 
+            switchColor = true, 
+            onChecked = { onCheckedChange(!item.isChecked) }
+        )
+        
+        Spacer(modifier = Modifier.width(4.dp))
+        
         TextField(
             value = item.text,
             onValueChange = onTextChange,
+            placeholder = {
+                Text(
+                    text = "List item",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = colorScheme.onSurface.copy(alpha = 0.4f)
+                )
+            },
             textStyle = MaterialTheme.typography.bodyMedium.copy(
-                color = if (item.isChecked) colorScheme.onSurface.copy(alpha = 0.7f) else colorScheme.onSurface
+                color = if (item.isChecked) colorScheme.onSurface.copy(alpha = 0.6f) else colorScheme.onSurface
             ),
             modifier = Modifier.weight(1f),
             colors = TextFieldDefaults.colors(
@@ -49,8 +66,17 @@ fun EditorChecklistItem(
                 cursorColor = colorScheme.primary,
             )
         )
-        IconButton(onClick = onRemove) {
-            Icon(Icons.Default.Close, contentDescription = "Remove", tint = colorScheme.onSurface.copy(alpha = 0.5f))
+
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.size(32.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close, 
+                contentDescription = "Remove", 
+                tint = colorScheme.onSurface.copy(alpha = 0.4f),
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }

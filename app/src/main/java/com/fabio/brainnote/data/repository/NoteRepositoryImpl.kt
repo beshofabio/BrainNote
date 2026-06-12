@@ -7,8 +7,9 @@ import com.fabio.brainnote.domain.model.Note
 import com.fabio.brainnote.domain.repo.NoteRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class NoteRepositoryImpl(
+class NoteRepositoryImpl @Inject constructor(
     private val noteDao: NoteDao
 ) : NoteRepository {
     override fun getNoteById(noteId: Long): Note? {
@@ -27,5 +28,9 @@ class NoteRepositoryImpl(
 
     override suspend fun upsertNote(note: Note): Long {
         return noteDao.upsertNote(note.toEntity())
+    }
+
+    override suspend fun deleteNote(id: Long) {
+        noteDao.deleteNote(id)
     }
 }

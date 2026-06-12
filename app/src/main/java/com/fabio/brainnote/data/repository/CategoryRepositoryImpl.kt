@@ -7,8 +7,9 @@ import com.fabio.brainnote.domain.model.Category
 import com.fabio.brainnote.domain.repo.CategoryRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class CategoryRepositoryImpl(
+class CategoryRepositoryImpl @Inject constructor(
     private val dao: CategoryDao
 ) : CategoryRepository {
 

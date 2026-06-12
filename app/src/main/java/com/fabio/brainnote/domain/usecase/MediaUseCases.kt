@@ -1,9 +1,11 @@
 package com.fabio.brainnote.domain.usecase
 
 import com.fabio.brainnote.domain.usecase.media.*
+import javax.inject.Inject
 
-data class MediaUseCases(
+class MediaUseCases @Inject constructor(
     val saveImage: SaveImageUseCase,
+    val deleteImage: DeleteImageUseCase,
     val startAudio: StartAudioUseCase,
     val stopAudio: StopAudioUseCase,
     val deleteAudio: DeleteAudioUseCase,

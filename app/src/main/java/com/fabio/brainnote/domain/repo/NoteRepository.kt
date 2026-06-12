@@ -9,4 +9,5 @@ interface NoteRepository {
     fun getEntireNoteFullDetails(rootId: Long): Flow<List<Note>>
 
     suspend fun upsertNote(note: Note): Long
+    suspend fun deleteNote(id: Long)
 }

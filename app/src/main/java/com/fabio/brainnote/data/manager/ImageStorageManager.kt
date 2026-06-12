@@ -36,4 +36,11 @@ class ImageStorageManager @Inject constructor(
             }
         }
     }
+
+    override fun deleteImage(path: String) {
+        val file = File(path)
+        if (file.exists()) {
+            file.delete()
+        }
+    }
 }

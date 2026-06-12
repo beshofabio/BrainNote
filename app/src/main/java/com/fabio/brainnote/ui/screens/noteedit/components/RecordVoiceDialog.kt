@@ -1,6 +1,7 @@
 package com.fabio.brainnote.ui.screens.noteedit.components
 
 import android.Manifest
+import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.RepeatMode
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun RecordVoiceDialog(
     onStartRecording: () -> Unit,
@@ -47,7 +49,8 @@ fun RecordVoiceDialog(
     onCancelRecording: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
-    var durationSeconds by remember { mutableLongStateOf(0L) }
+    var startTime by remember { mutableLongStateOf(0L) }
+    var elapsedMs by remember { mutableLongStateOf(0L) }
     var isRecording by remember { mutableStateOf(false) }
     var hasStartedOnce by remember { mutableStateOf(false) }
 
@@ -57,15 +60,16 @@ fun RecordVoiceDialog(
         if (isGranted) {
             isRecording = true
             hasStartedOnce = true
+            startTime = System.currentTimeMillis()
             onStartRecording()
         }
     }
 
     LaunchedEffect(isRecording) {
         if (isRecording) {
-            while (true) {
-                delay(1000L)
-                durationSeconds++
+            while (isRecording) {
+                elapsedMs = System.currentTimeMillis() - startTime
+                delay(100L)
             }
         }
     }
@@ -77,8 +81,9 @@ fun RecordVoiceDialog(
         label = "pulse"
     )
 
-    val minutes = durationSeconds / 60
-    val seconds = durationSeconds % 60
+    val totalSeconds = elapsedMs / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
     val timeLabel = String.format("%02d:%02d", minutes, seconds)
 
     AlertDialog(
@@ -147,13 +152,19 @@ fun RecordVoiceDialog(
         confirmButton = {
             TextButton(
                 enabled = hasStartedOnce,
-                onClick = { onStopRecording(durationSeconds) }
+                onClick = { 
+                    isRecording = false
+                    onStopRecording(totalSeconds) 
+                }
             ) {
                 Text("Stop & Save", color = colorScheme.primary, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
-            TextButton(onClick = onCancelRecording) {
+            TextButton(onClick = {
+                isRecording = false
+                onCancelRecording()
+            }) {
                 Text("Cancel", color = colorScheme.onSurface.copy(alpha = 0.6f))
             }
         }

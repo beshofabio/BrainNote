@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
@@ -23,6 +24,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import java.util.Random
 
@@ -34,30 +36,31 @@ fun VoiceNotePlayer(
     durationSeconds: Long,
     isPlaying: Boolean = false,
     currentPositionMs: Long = 0L,
+    totalDurationMs: Long = durationSeconds * 1000L,
     onPlayPauseClick: () -> Unit = {},
     onSeek: (Float) -> Unit = {},
+    onRemoveClick: (() -> Unit)? = null,
     switchColor: Boolean = false
 ) {
-    val totalDurationMs = durationSeconds * 1000L
-
-    // 1. Progress Source
+    // 1. Progress Source (Normalized 0..1)
     val rawProgress = if (totalDurationMs <= 0) 0f
     else (currentPositionMs.toFloat() / totalDurationMs).coerceIn(0f, 1f)
 
-    // 2. Smooth Interpolation
+    // 2. Interpolated progress for liquid-smooth movement
     val animatedProgress by animateFloatAsState(
         targetValue = rawProgress,
-        animationSpec = if (isPlaying) tween(durationMillis = 32, easing = LinearEasing) else snap(),
+        animationSpec = if (isPlaying) tween(durationMillis = 48, easing = LinearEasing) else snap(),
         label = "playbackProgress"
     )
 
-    // 3. Cursor Visibility Logic: Hidden at 0, Visible during play, Hidden when ended.
-    // We use the exact totalDurationMs to ensure it doesn't disappear early.
-    val isCursorVisible = isPlaying || (currentPositionMs > 0 && currentPositionMs < totalDurationMs)
+    // 3. Robust Completion Logic
+    val isFinished = !isPlaying && currentPositionMs > 0 && (rawProgress > 0.95f || (totalDurationMs > 0 && currentPositionMs >= totalDurationMs - 150))
+    val finalProgress = if (isFinished) 1f else animatedProgress
 
-    // Snap to 1f only when practically finished to fill the last bar
-    val finalProgress = if (!isPlaying && rawProgress > 0.99f) 1f else animatedProgress
+    // 4. Cursor Visibility Logic
+    val isCursorVisible = (isPlaying || currentPositionMs > 0) && finalProgress < 1f
 
+    // Formatting time labels
     val minutes = (currentPositionMs / 1000) / 60
     val seconds = (currentPositionMs / 1000) % 60
     val totalMinutes = durationSeconds / 60
@@ -69,6 +72,7 @@ fun VoiceNotePlayer(
     }
 
     val colorScheme = MaterialTheme.colorScheme
+
     val baseSurfaceColor = if (switchColor) {
         colorScheme.onSurface.copy(alpha = 0.08f)
     } else {
@@ -85,13 +89,12 @@ fun VoiceNotePlayer(
             modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Clean Play Icon with no background circle/shadow
             Box(
                 modifier = Modifier
                     .size(28.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        indication = null
+                        indication = null 
                     ) { onPlayPauseClick() },
                 contentAlignment = Alignment.Center
             ) {
@@ -114,10 +117,9 @@ fun VoiceNotePlayer(
                     val barCount = 45
                     val barWidth = 2.dp.toPx()
                     val spacing = (size.width - (barCount * barWidth)) / (barCount - 1)
-                    val random = Random(durationSeconds)
+                    val random = Random(durationSeconds) 
                     val heights = List(barCount) { 8.dp.toPx() + random.nextInt(16.dp.toPx().toInt()) }
 
-                    // Draw Unplayed Bars
                     for (i in 0 until barCount) {
                         val x = i * (barWidth + spacing)
                         val h = heights[i]
@@ -131,7 +133,6 @@ fun VoiceNotePlayer(
 
                     val cursorX = finalProgress * size.width
 
-                    // Draw Played Bars
                     clipRect(right = cursorX) {
                         for (i in 0 until barCount) {
                             val x = i * (barWidth + spacing)
@@ -145,7 +146,6 @@ fun VoiceNotePlayer(
                         }
                     }
 
-                    // Draw Indicator only if logically active
                     if (isCursorVisible) {
                         val cursorWidth = 2.dp.toPx()
                         drawRoundRect(
@@ -169,13 +169,33 @@ fun VoiceNotePlayer(
                 )
             }
 
-            Text(
-                text = timeLabel,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = contentTintColor,
-                modifier = Modifier.padding(end = 4.dp)
-            )
+            if (onRemoveClick != null && !isPlaying && currentPositionMs == 0L) {
+                IconButton(
+                    onClick = onRemoveClick,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Remove recording",
+                        tint = contentTintColor.copy(alpha = 0.5f),
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            } else {
+                Text(
+                    text = timeLabel,
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        fontFeatureSettings = "tnum"
+                    ),
+                    fontWeight = FontWeight.Bold,
+                    color = contentTintColor,
+                    textAlign = TextAlign.End,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .width(48.dp)
+                        .padding(end = 4.dp)
+                )
+            }
         }
     }
 }

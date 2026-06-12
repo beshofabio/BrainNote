@@ -1,4 +1,4 @@
-package com.fabio.brainnote.domain.repo // Or com.fabio.brainnote.domain.alarm
+package com.fabio.brainnote.domain.repo
 
 import com.fabio.brainnote.domain.model.Reminder
 

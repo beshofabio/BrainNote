@@ -25,7 +25,6 @@ class HomeViewModel @Inject constructor(
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private var currentCategoryNotes: List<Note> = emptyList()
-
     private var notesJob: Job? = null
 
     init {
@@ -36,9 +35,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             categoryUseCases.getAll().collect { categories ->
                 if (categories.isNotEmpty()) {
-
                     val currentSelectedId = _uiState.value.selectedCategoryId
-
                     val activeCategoryId = if (currentSelectedId == 0L) {
                         categories.first().id
                     } else {
@@ -63,7 +60,6 @@ class HomeViewModel @Inject constructor(
 
     private fun observeNotesForCategory(categoryId: Long) {
         notesJob?.cancel()
-
         notesJob = viewModelScope.launch(Dispatchers.IO) {
             noteUseCases.getNotesByCategory(categoryId).collect { notes ->
                 currentCategoryNotes = notes
@@ -73,19 +69,12 @@ class HomeViewModel @Inject constructor(
     }
 
     fun onCategorySelected(categoryId: Long) {
-        _uiState.update { currentState ->
-            currentState.copy(selectedCategoryId = categoryId)
-        }
-
+        _uiState.update { it.copy(selectedCategoryId = categoryId) }
         observeNotesForCategory(categoryId)
     }
 
     fun onSearchQueryChanged(searchQuery: String) {
-        _uiState.update { currentState ->
-            currentState.copy(
-                searchQuery = searchQuery
-            )
-        }
+        _uiState.update { it.copy(searchQuery = searchQuery) }
         applySearchFilter()
     }
 
@@ -100,9 +89,12 @@ class HomeViewModel @Inject constructor(
                         note.content.contains(query, ignoreCase = true)
             }
         }
+        
+        val sortedNotes = filteredNotes.sortedWith(
+            compareByDescending<Note> { it.isPinned }
+                .thenByDescending { it.updatedAt }
+        )
 
-        _uiState.update { it.copy(filteredNotes = filteredNotes) }
+        _uiState.update { it.copy(filteredNotes = sortedNotes) }
     }
-
-
 }

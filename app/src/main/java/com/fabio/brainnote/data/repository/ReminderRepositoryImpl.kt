@@ -7,8 +7,9 @@ import com.fabio.brainnote.domain.model.Reminder
 import com.fabio.brainnote.domain.repo.ReminderRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
-class ReminderRepositoryImpl(
+class ReminderRepositoryImpl @Inject constructor(
     private val dao: ReminderDao
 ) : ReminderRepository {
 
