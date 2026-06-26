@@ -19,11 +19,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -253,7 +255,25 @@ class NoteEditorViewModel @Inject constructor(
         if (_state.value.isEdited) {
             showDialog(NoteEditorDialogState.DiscardEditsConfirmation)
         } else {
-            onNavigateBack()
+            performCleanupAndExit(onNavigateBack)
+        }
+    }
+
+    fun confirmDiscard(onNavigateBack: () -> Unit) {
+        performCleanupAndExit(onNavigateBack)
+    }
+
+    private fun performCleanupAndExit(onExit: () -> Unit) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(NonCancellable) {
+                currentSessionImages.forEach { mediaUseCases.deleteImage(it) }
+                currentSessionVoices.forEach { mediaUseCases.deleteAudio(it) }
+                currentSessionImages.clear()
+                currentSessionVoices.clear()
+            }
+            withContext(Dispatchers.Main) {
+                onExit()
+            }
         }
     }
 

@@ -10,13 +10,15 @@ import com.fabio.brainnote.ui.screens.noteedit.NoteEditorViewModel
 @Composable
 fun NoteEditorRoute(
     onBackClick: () -> Unit,
-    viewModel: NoteEditorViewModel = hiltViewModel()
 ) {
+    val viewModel : NoteEditorViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    val onBackRequest = { viewModel.handleBackPress(onBackClick) }
 
     NoteEditorScreen(
         state = state,
-        onBackClick = onBackClick,
+        onBackClick = onBackRequest,
 
         onTitleChange = viewModel::onTitleChange,
         onContentChange = viewModel::onContentChange,
@@ -31,7 +33,8 @@ fun NoteEditorRoute(
         onConfirmRemoveChecklist = viewModel::confirmRemoveChecklistItem,
         onConfirmRemoveVoice = viewModel::confirmRemoveVoiceNote,
         onConfirmRemoveReminder = viewModel::confirmRemoveReminder,
-        onRequestBackPress = { viewModel.handleBackPress(onBackClick) },
+        
+        onRequestBackPress = onBackRequest,
         onRequestSave = viewModel::handleSaveRequest,
 
         onImageConfirmed = viewModel::onImageConfirmed,
@@ -50,6 +53,8 @@ fun NoteEditorRoute(
 
         onConfirmClusterCategoryChange = viewModel::onConfirmClusterCategoryChange,
         onDismissClusterCategoryDialog = viewModel::onDismissClusterCategoryDialog,
-        onConfirmClusterPinChange = viewModel::onConfirmClusterPinChange
+        onConfirmClusterPinChange = viewModel::onConfirmClusterPinChange,
+        
+        onConfirmDiscard = { viewModel.confirmDiscard(onBackClick) }
     )
 }

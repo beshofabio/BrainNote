@@ -38,11 +38,8 @@ fun NavGraphBuilder.homeComposable(
             onSearchQueryChanged = homeScreenViewModel::onSearchQueryChanged,
             onAddNoteClick = { },
             editorContent = { closeEditorCallback ->
-                val quickAddViewModel: NoteEditorViewModel = hiltViewModel()
                 NoteEditorRoute(
-                    viewModel = quickAddViewModel,
                     onBackClick = {
-                        quickAddViewModel.discardEdits()
                         closeEditorCallback()
                     }
                 )

@@ -95,7 +95,8 @@ fun NoteEditorScreen(
 
     onConfirmClusterCategoryChange: () -> Unit,
     onDismissClusterCategoryDialog: () -> Unit,
-    onConfirmClusterPinChange: () -> Unit
+    onConfirmClusterPinChange: () -> Unit,
+    onConfirmDiscard: () -> Unit
 ) {
     val colorScheme = MaterialTheme.colorScheme
     var pendingImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -127,7 +128,8 @@ fun NoteEditorScreen(
         onStartRecording = onStartRecording,
         onStopRecording = onStopRecording,
         onCancelRecording = onCancelRecording,
-        onConfirmClusterPinChange = onConfirmClusterPinChange
+        onConfirmClusterPinChange = onConfirmClusterPinChange,
+        onConfirmDiscard = onConfirmDiscard
     )
 
 

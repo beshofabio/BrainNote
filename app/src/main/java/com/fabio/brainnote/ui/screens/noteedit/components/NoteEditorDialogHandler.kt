@@ -35,7 +35,8 @@ fun NoteEditorDialogHandler(
     onStartRecording: () -> Unit,
     onStopRecording: (Long) -> Unit,
     onCancelRecording: () -> Unit,
-    onConfirmClusterPinChange: () -> Unit
+    onConfirmClusterPinChange: () -> Unit,
+    onConfirmDiscard: () -> Unit
 ) {
     when (val dialog = state.activeDialog) {
         is NoteEditorDialogState.ClusterCategoryChange -> {
@@ -128,7 +129,7 @@ fun NoteEditorDialogHandler(
                 confirmButton = {
                     TextButton(onClick = {
                         onDismissDialog()
-                        onBackClick()
+                        onConfirmDiscard()
                     }) {
                         Text(
                             stringResource(R.string.discard_btn),
