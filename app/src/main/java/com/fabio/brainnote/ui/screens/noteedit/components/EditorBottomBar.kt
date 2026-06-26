@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.NotificationsActive
+import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,15 +51,15 @@ fun EditorBottomBar(
     )
 
     BottomAppBar(
-        containerColor = colorScheme.surface,
+        containerColor = colorScheme.surfaceVariant,
         contentPadding = PaddingValues(horizontal = 8.dp),
-        tonalElevation = 8.dp
+        tonalElevation = 0.dp
     ) {
         IconButton(onClick = { showAttachmentMenu = !showAttachmentMenu }) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add Attachment",
-                tint = colorScheme.onSurface,
+                tint = if (showAttachmentMenu) colorScheme.primary else colorScheme.onSurfaceVariant,
                 modifier = Modifier.rotate(plusIconRotation)
             )
         }
@@ -69,16 +71,32 @@ fun EditorBottomBar(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { onAddChecklist(); showAttachmentMenu = false }) {
-                    Icon(Icons.Default.CheckBox, contentDescription = "Checklist", tint = colorScheme.onSurface)
+                    Icon(
+                        imageVector = Icons.Default.CheckBox,
+                        contentDescription = "Checklist",
+                        tint = colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(onClick = { onAddImage(); showAttachmentMenu = false }) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = "Image", tint = colorScheme.onSurface)
+                    Icon(
+                        imageVector = Icons.Default.Photo,
+                        contentDescription = "Image",
+                        tint = colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(onClick = { onRecordAudio(); showAttachmentMenu = false }) {
-                    Icon(Icons.Default.Mic, contentDescription = "Audio", tint = colorScheme.onSurface)
+                    Icon(
+                        imageVector = Icons.Default.Mic,
+                        contentDescription = "Audio",
+                        tint = colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(onClick = { onAddReminder(); showAttachmentMenu = false }) {
-                    Icon(Icons.Default.NotificationsActive, contentDescription = "Reminder", tint = colorScheme.onSurface)
+                    Icon(
+                        imageVector = Icons.Default.NotificationsActive,
+                        contentDescription = "Reminder",
+                        tint = colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -88,7 +106,7 @@ fun EditorBottomBar(
         Text(
             text = "Edited just now",
             style = MaterialTheme.typography.labelSmall,
-            color = colorScheme.onSurface.copy(alpha = 0.5f),
+            color = colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
             modifier = Modifier.padding(end = 16.dp)
         )
     }

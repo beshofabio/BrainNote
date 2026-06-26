@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fabio.brainnote.domain.helper.formatToDateTime
+import com.fabio.brainnote.domain.model.Category
 import com.fabio.brainnote.domain.model.ChecklistItem
 import com.fabio.brainnote.domain.model.Note
 import com.fabio.brainnote.domain.model.Reminder
@@ -12,7 +13,11 @@ import com.fabio.brainnote.domain.model.VoiceNote
 import com.fabio.brainnote.domain.usecase.CategoryUseCases
 import com.fabio.brainnote.domain.usecase.MediaUseCases
 import com.fabio.brainnote.domain.usecase.NoteUseCases
+import com.fabio.brainnote.domain.usecase.link.SyncClusterCategoryUseCase
+import com.fabio.brainnote.domain.usecase.link.SyncClusterPinUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,6 +31,8 @@ class NoteEditorViewModel @Inject constructor(
     private val noteUseCases: NoteUseCases,
     private val mediaUseCases: MediaUseCases,
     private val categoryUseCases: CategoryUseCases,
+    private val syncClusterCategory: SyncClusterCategoryUseCase,
+    private val syncClusterPin: SyncClusterPinUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -44,25 +51,45 @@ class NoteEditorViewModel @Inject constructor(
     private var originalVoiceNotes: List<VoiceNote> = emptyList()
     private var originalReminders: List<Reminder> = emptyList()
 
-
     private val currentSessionImages = mutableSetOf<String>()
     private val currentSessionVoices = mutableSetOf<String>()
+
+    private var pendingCategoryTarget: Category? = null
+    private var pendingPinTarget: Boolean? = null
 
     init {
         observeCategories()
         observePlaybackProgress()
 
         val noteId = savedStateHandle.get<Long>("noteId")
+        val rootNoteId = savedStateHandle.get<Long>("rootNoteId")?.takeIf { it != -1L }
+
         if (noteId != null && noteId != -1L) {
             loadExistingNote(noteId)
             observeNoteHistory(noteId)
+        }
+
+        if (rootNoteId != null) {
+            loadClusterContext(rootNoteId)
+        }
+    }
+
+    private fun loadClusterContext(rootNoteId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val rootNote = noteUseCases.getNoteById(rootNoteId)
+            _state.update {
+                it.copy(
+                    clusterRootId = rootNoteId,
+                    clusterRootTitle = rootNote?.title ?: ""
+                )
+            }
         }
     }
 
     private fun observeCategories() {
         viewModelScope.launch(Dispatchers.IO) {
             categoryUseCases.getAll().collect { categories ->
-                _state.update { it.copy(availableCategories = categories) }
+                _state.update { it.copy(availableCategories = categories.toImmutableList()) }
                 if (_state.value.noteId == null && _state.value.selectedCategory == null && categories.isNotEmpty()) {
                     val defaultCat = categories.first()
                     _state.update { it.copy(selectedCategory = defaultCat) }
@@ -89,7 +116,7 @@ class NoteEditorViewModel @Inject constructor(
     private fun observeNoteHistory(noteId: Long) {
         viewModelScope.launch(Dispatchers.IO) {
             noteUseCases.getNoteHistory(noteId).collect { history ->
-                _state.update { it.copy(noteHistory = history) }
+                _state.update { it.copy(noteHistory = history.toImmutableList()) }
             }
         }
     }
@@ -109,6 +136,8 @@ class NoteEditorViewModel @Inject constructor(
                 originalVoiceNotes = note.voiceNotes
                 originalReminders = note.reminders
 
+                val checkList = note.checklist.sortedBy { it.position }
+
                 _state.update {
                     it.copy(
                         noteId = note.id,
@@ -119,9 +148,9 @@ class NoteEditorViewModel @Inject constructor(
                         isLocked = note.isLocked,
                         colorPriority = note.colorPriority,
                         imagePath = note.imagePath,
-                        checklists = note.checklist.sortedBy { item -> item.position },
-                        voiceNotes = note.voiceNotes,
-                        reminders = note.reminders,
+                        checklists = checkList.toImmutableList(),
+                        voiceNotes = note.voiceNotes.toImmutableList(),
+                        reminders = note.reminders.toImmutableList(),
                         isLoading = false,
                         isEdited = false
                     )
@@ -142,7 +171,6 @@ class NoteEditorViewModel @Inject constructor(
                 s.checklists != originalChecklists ||
                 s.voiceNotes != originalVoiceNotes ||
                 s.reminders != originalReminders
-        
         _state.update { it.copy(isEdited = hasChanges) }
     }
 
@@ -157,80 +185,179 @@ class NoteEditorViewModel @Inject constructor(
     }
 
     fun onTogglePin() {
-        _state.update { it.copy(isPinned = !it.isPinned) }
+        val nextPinState = !_state.value.isPinned
+        val isInCluster = _state.value.clusterRootId != null
+
+        if (isInCluster) {
+            pendingPinTarget = nextPinState
+            showDialog(NoteEditorDialogState.ClusterPinChange(willPin = nextPinState))
+        } else {
+            _state.update { it.copy(isPinned = nextPinState) }
+            checkChanges()
+        }
+    }
+
+    fun onConfirmClusterPinChange() {
+        val targetPinState = pendingPinTarget ?: return
+        _state.update {
+            it.copy(
+                isPinned = targetPinState,
+                activeDialog = null
+            )
+        }
         checkChanges()
     }
 
     fun onAddChecklistItem() {
-        val newItem = ChecklistItem(id = System.nanoTime(), text = "", isChecked = false, position = _state.value.checklists.size)
-        _state.update { it.copy(checklists = it.checklists + newItem) }
+        _state.update {  currentState ->
+            val newItem = ChecklistItem(
+                id = System.nanoTime(),
+                text = "",
+                isChecked = false,
+                position = currentState.checklists.size
+            )
+            val updatedCheckList = currentState.checklists.toPersistentList().add(newItem)
+            currentState.copy(checklists = updatedCheckList)
+        }
         checkChanges()
     }
 
     fun onUpdateChecklistItem(index: Int, newText: String, isChecked: Boolean) {
         _state.update { currentState ->
-            val updatedList = currentState.checklists.toMutableList()
-            if (index in updatedList.indices) {
-                updatedList[index] = updatedList[index].copy(text = newText, isChecked = isChecked)
-                currentState.copy(checklists = updatedList)
-            } else currentState
-        }
-        checkChanges()
-    }
-
-    fun onRemoveChecklistItem(index: Int) {
-        _state.update { currentState ->
-            val updatedList = currentState.checklists.toMutableList()
-            if (index in updatedList.indices) {
-                updatedList.removeAt(index)
-                val fixed = updatedList.mapIndexed { i, item -> item.copy(position = i) }
-                currentState.copy(checklists = fixed)
+            val updatedCheckList = currentState.checklists.toMutableList()
+            if (index in updatedCheckList.indices) {
+                updatedCheckList[index] = updatedCheckList[index].copy(text = newText, isChecked = isChecked)
+                currentState.copy(checklists = updatedCheckList.toImmutableList())
             } else currentState
         }
         checkChanges()
     }
 
     fun onAddReminder(reminder: Reminder) {
-        _state.update { it.copy(reminders = it.reminders + reminder) }
-        checkChanges()
-    }
-
-    fun onRemoveReminder(index: Int) {
         _state.update { currentState ->
-            val updatedList = currentState.reminders.toMutableList()
-            if (index in updatedList.indices) {
-                updatedList.removeAt(index)
-                currentState.copy(reminders = updatedList)
-            } else currentState
+            val updatedReminderList = currentState.reminders.toPersistentList().add(reminder)
+            currentState.copy(reminders = updatedReminderList, activeDialog = null)
         }
         checkChanges()
     }
 
-    fun onRemoveVoiceNote(index: Int) {
-        _state.update { currentState ->
-            val updatedList = currentState.voiceNotes.toMutableList()
-            if (index in updatedList.indices) {
-                val removedVoice = updatedList.removeAt(index)
+    fun showDialog(dialogState: NoteEditorDialogState) {
+        _state.update { it.copy(activeDialog = dialogState) }
+    }
 
-                if (currentSessionVoices.contains(removedVoice.audioPath)) {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        mediaUseCases.deleteAudio(removedVoice.audioPath)
-                        currentSessionVoices.remove(removedVoice.audioPath)
-                    }
+    fun dismissDialog() {
+        _state.update { it.copy(activeDialog = null) }
+    }
+
+    fun handleBackPress(onNavigateBack: () -> Unit) {
+        if (_state.value.isEdited) {
+            showDialog(NoteEditorDialogState.DiscardEditsConfirmation)
+        } else {
+            onNavigateBack()
+        }
+    }
+
+    fun handleSaveRequest() {
+        val s = _state.value
+        val isNoteEmpty = s.title.isBlank() &&
+                s.content.isBlank() &&
+                s.checklists.isEmpty() &&
+                s.voiceNotes.isEmpty() &&
+                s.imagePath == null
+        if (isNoteEmpty && s.noteId == null) {
+            showDialog(NoteEditorDialogState.EmptyNoteWarning)
+        } else {
+            showDialog(NoteEditorDialogState.SaveConfirmation)
+        }
+    }
+
+    fun confirmRemoveChecklistItem(index: Int) {
+        _state.update { currentState ->
+            val updatedCheckList = currentState.checklists.toMutableList()
+            if (index in updatedCheckList.indices) {
+                updatedCheckList.removeAt(index)
+                val fixedCheckList = updatedCheckList.mapIndexed { i, item -> item.copy(position = i) }
+                currentState.copy(checklists = fixedCheckList.toImmutableList(), activeDialog = null)
+            } else currentState.copy(activeDialog = null)
+        }
+        checkChanges()
+    }
+
+    fun confirmRemoveReminder(index: Int) {
+        _state.update { currentState ->
+            if (index in currentState.reminders.indices) {
+                val updatedReminderList = currentState.reminders.toPersistentList().removeAt(index)
+                currentState.copy(reminders = updatedReminderList, activeDialog = null)
+            } else currentState.copy(activeDialog = null)
+        }
+        checkChanges()
+    }
+
+    fun confirmRemoveVoiceNote(index: Int) {
+        _state.update { currentState ->
+            if (index in currentState.voiceNotes.indices) {
+                val removedVoice = currentState.voiceNotes[index]
+                viewModelScope.launch(Dispatchers.IO) {
+                    mediaUseCases.deleteAudio(removedVoice.audioPath)
+                    currentSessionVoices.remove(removedVoice.audioPath)
                 }
 
-                currentState.copy(voiceNotes = updatedList)
-            } else currentState
+                val updatedVoiceNoteList = currentState.voiceNotes.toPersistentList().removeAt(index)
+                currentState.copy(
+                    voiceNotes = updatedVoiceNoteList,
+                    activeDialog = null
+                )
+            } else currentState.copy(activeDialog = null)
         }
         checkChanges()
     }
+
+
+    fun onCategorySelected(categoryId: Long) {
+        val newCategory = _state.value.availableCategories.find { it.id == categoryId }
+        val oldCategory = _state.value.selectedCategory
+
+        val isInCluster = _state.value.clusterRootId != null
+        val categoryActuallyChanged = newCategory?.id != oldCategory?.id
+
+        if (isInCluster && categoryActuallyChanged && newCategory != null) {
+            val fromName = oldCategory?.name ?: "current category"
+            val toName = newCategory.name
+            pendingCategoryTarget = newCategory
+            showDialog(NoteEditorDialogState.ClusterCategoryChange(fromName, toName))
+        } else {
+            _state.update { it.copy(selectedCategory = newCategory) }
+            checkChanges()
+        }
+    }
+
+    fun onConfirmClusterCategoryChange() {
+        val pending = pendingCategoryTarget ?: return
+        _state.update {
+            it.copy(
+                selectedCategory = pending,
+                activeDialog = null
+            )
+        }
+        pendingCategoryTarget = null
+        checkChanges()
+    }
+
+    fun onDismissClusterCategoryDialog() {
+        pendingCategoryTarget = null
+        dismissDialog()
+    }
+
 
     fun saveNote() {
         viewModelScope.launch(Dispatchers.IO) {
             val currentState = _state.value
-            if (currentState.title.isBlank() && currentState.content.isBlank() && currentState.checklists.isEmpty() && currentState.voiceNotes.isEmpty() && currentState.imagePath == null) {
-                return@launch
-            }
+            if (currentState.title.isBlank() &&
+                currentState.content.isBlank() &&
+                currentState.checklists.isEmpty() &&
+                currentState.voiceNotes.isEmpty() &&
+                currentState.imagePath == null
+            ) return@launch
 
             val modified = mutableListOf<String>()
             val removed = mutableListOf<String>()
@@ -239,14 +366,15 @@ class NoteEditorViewModel @Inject constructor(
             if (currentState.content != originalContent) modified.add("Description")
             if (currentState.selectedCategory?.id != originalCategoryId) modified.add("Category")
             if (currentState.isPinned != originalPinned) modified.add("Pin Status")
-            
             if (currentState.imagePath != originalImagePath) {
                 if (currentState.imagePath == null) removed.add("Image") else modified.add("Image")
             }
 
             val currentCheckIds = currentState.checklists.map { it.id }.toSet()
             if (originalChecklists.any { it.id !in currentCheckIds }) removed.add("Checklist item(s)")
-            if (currentState.checklists != originalChecklists && !currentState.checklists.all { it in originalChecklists }) modified.add("Checklist")
+            if (currentState.checklists != originalChecklists &&
+                !currentState.checklists.all { it in originalChecklists }
+            ) modified.add("Checklist")
 
             val currentVoicePaths = currentState.voiceNotes.map { it.audioPath }.toSet()
             if (originalVoiceNotes.any { it.audioPath !in currentVoicePaths }) removed.add("Voice recording(s)")
@@ -284,31 +412,42 @@ class NoteEditorViewModel @Inject constructor(
 
             noteUseCases.saveFullNote(noteToSave, finalSummary)
 
+            val rootId = currentState.clusterRootId
+
+            val categoryChanged = currentState.selectedCategory?.id != originalCategoryId
+            if (categoryChanged && rootId != null && currentState.selectedCategory != null) {
+                syncClusterCategory(rootId, currentState.selectedCategory)
+            }
+
+            val pinChanged = currentState.isPinned != originalPinned
+            if (pinChanged && rootId != null) {
+                syncClusterPin(rootId, currentState.isPinned)
+            }
+
             currentSessionImages.clear()
             currentSessionVoices.clear()
 
-            originalTitle = currentState.title; originalContent = currentState.content
-            originalCategoryId = currentState.selectedCategory?.id; originalPinned = currentState.isPinned
-            originalImagePath = currentState.imagePath; originalChecklists = currentState.checklists
-            originalVoiceNotes = currentState.voiceNotes; originalReminders = currentState.reminders
+            originalTitle = currentState.title
+            originalContent = currentState.content
+            originalCategoryId = currentState.selectedCategory?.id
+            originalPinned = currentState.isPinned
+            originalImagePath = currentState.imagePath
+            originalChecklists = currentState.checklists
+            originalVoiceNotes = currentState.voiceNotes
+            originalReminders = currentState.reminders
 
-            _state.update { it.copy(isSaved = true, isEdited = false) }
+            _state.update { it.copy(isSaved = true, isEdited = false, activeDialog = null) }
         }
     }
+
 
     fun deleteNote() {
         _state.value.noteId?.let { id ->
             viewModelScope.launch {
                 noteUseCases.deleteNote(id)
-                _state.update { it.copy(isSaved = true, isEdited = false) }
+                _state.update { it.copy(isSaved = true, isEdited = false, activeDialog = null) }
             }
         }
-    }
-
-    fun onCategorySelected(categoryId: Long) {
-        val category = _state.value.availableCategories.find { it.id == categoryId }
-        _state.update { it.copy(selectedCategory = category) }
-        checkChanges()
     }
 
     fun onImageConfirmed(uri: Uri) {
@@ -326,7 +465,6 @@ class NoteEditorViewModel @Inject constructor(
         val removedPath = _state.value.imagePath
         _state.update { it.copy(imagePath = null) }
         checkChanges()
-
         if (removedPath != null && currentSessionImages.contains(removedPath)) {
             viewModelScope.launch(Dispatchers.IO) {
                 mediaUseCases.deleteImage(removedPath)
@@ -343,9 +481,14 @@ class NoteEditorViewModel @Inject constructor(
         mediaUseCases.stopAudio()
         currentAudioPath?.let { path ->
             currentSessionVoices.add(path)
-
             val newVoiceNote = VoiceNote(id = 0, audioPath = path, duration = durationSeconds)
-            _state.update { it.copy(voiceNotes = it.voiceNotes + newVoiceNote) }
+            val updatedVoiceNoteList = _state.value.voiceNotes.toPersistentList().add(newVoiceNote)
+            _state.update {
+                it.copy(
+                    voiceNotes = updatedVoiceNoteList,
+                    activeDialog = null
+                )
+            }
             checkChanges()
         }
         currentAudioPath = null
@@ -372,7 +515,6 @@ class NoteEditorViewModel @Inject constructor(
 
     fun resetState() {
         mediaUseCases.stopAudio()
-
         val currentlyLoadedCategories = _state.value.availableCategories
         val defaultCat = currentlyLoadedCategories.first()
 
@@ -396,13 +538,8 @@ class NoteEditorViewModel @Inject constructor(
 
     fun discardEdits() {
         viewModelScope.launch(Dispatchers.IO) {
-            currentSessionImages.forEach { path ->
-                mediaUseCases.deleteImage(path)
-            }
-            currentSessionVoices.forEach { path ->
-                mediaUseCases.deleteAudio(path)
-            }
-
+            currentSessionImages.forEach { path -> mediaUseCases.deleteImage(path) }
+            currentSessionVoices.forEach { path -> mediaUseCases.deleteAudio(path) }
             currentSessionImages.clear()
             currentSessionVoices.clear()
             resetState()

@@ -2,7 +2,7 @@ package com.fabio.brainnote.navigations
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fabio.brainnote.ui.screens.noteedit.NoteEditorScreen
 import com.fabio.brainnote.ui.screens.noteedit.NoteEditorViewModel
@@ -17,7 +17,7 @@ fun NoteEditorRoute(
     NoteEditorScreen(
         state = state,
         onBackClick = onBackClick,
-        
+
         onTitleChange = viewModel::onTitleChange,
         onContentChange = viewModel::onContentChange,
         onTogglePin = viewModel::onTogglePin,
@@ -25,22 +25,31 @@ fun NoteEditorRoute(
 
         onAddChecklistItem = viewModel::onAddChecklistItem,
         onUpdateChecklistItem = viewModel::onUpdateChecklistItem,
-        onRemoveChecklistItem = viewModel::onRemoveChecklistItem,
+
+        onShowDialog = viewModel::showDialog,
+        onDismissDialog = viewModel::dismissDialog,
+        onConfirmRemoveChecklist = viewModel::confirmRemoveChecklistItem,
+        onConfirmRemoveVoice = viewModel::confirmRemoveVoiceNote,
+        onConfirmRemoveReminder = viewModel::confirmRemoveReminder,
+        onRequestBackPress = { viewModel.handleBackPress(onBackClick) },
+        onRequestSave = viewModel::handleSaveRequest,
 
         onImageConfirmed = viewModel::onImageConfirmed,
         onRemoveImage = viewModel::onRemoveImage,
         onAddReminder = viewModel::onAddReminder,
-        onRemoveReminder = viewModel::onRemoveReminder,
 
         onStartRecording = viewModel::startRecordingAudio,
         onStopRecording = viewModel::stopAndSaveAudio,
         onCancelRecording = viewModel::cancelRecordingAudio,
-        onRemoveVoiceNote = viewModel::onRemoveVoiceNote,
 
         onPlayPauseAudio = viewModel::onPlayPauseAudio,
         onSeekAudio = viewModel::onSeekAudio,
 
         onSaveNote = viewModel::saveNote,
-        onDeleteNote = viewModel::deleteNote
+        onDeleteNote = viewModel::deleteNote,
+
+        onConfirmClusterCategoryChange = viewModel::onConfirmClusterCategoryChange,
+        onDismissClusterCategoryDialog = viewModel::onDismissClusterCategoryDialog,
+        onConfirmClusterPinChange = viewModel::onConfirmClusterPinChange
     )
 }

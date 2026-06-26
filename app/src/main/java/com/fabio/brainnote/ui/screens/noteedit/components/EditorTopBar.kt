@@ -1,12 +1,14 @@
 package com.fabio.brainnote.ui.screens.noteedit.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Schema
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.DropdownMenu
@@ -23,13 +25,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorTopBar(
     isPinned: Boolean,
     isNewNote: Boolean,
+    isInCluster: Boolean = false,
     onBackClick: () -> Unit,
     onTogglePin: () -> Unit,
     onSaveClick: () -> Unit,
@@ -43,10 +47,23 @@ fun EditorTopBar(
         colors = TopAppBarDefaults.topAppBarColors(containerColor = colorScheme.background),
         navigationIcon = {
             IconButton(onClick = onBackClick) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = colorScheme.onSurface)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = colorScheme.onSurface
+                )
             }
         },
         actions = {
+            if (isInCluster) {
+                Icon(
+                    imageVector = Icons.Default.Schema,
+                    contentDescription = "Part of cluster",
+                    tint = colorScheme.primary,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+            }
+
             IconButton(onClick = onTogglePin) {
                 Icon(
                     imageVector = if (isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
@@ -55,13 +72,21 @@ fun EditorTopBar(
                 )
             }
             IconButton(onClick = onSaveClick) {
-                Icon(Icons.Default.Check, contentDescription = "Save Note", tint = colorScheme.onSurface)
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = "Save Note",
+                    tint = colorScheme.onSurface
+                )
             }
-            
+
             if (!isNewNote) {
                 Box {
                     IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Options", tint = colorScheme.onSurface)
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = colorScheme.onSurface
+                        )
                     }
                     DropdownMenu(
                         expanded = showMenu,
@@ -73,7 +98,9 @@ fun EditorTopBar(
                                 showMenu = false
                                 onHistoryClick()
                             },
-                            leadingIcon = { Icon(Icons.Default.History, contentDescription = null) }
+                            leadingIcon = {
+                                Icon(Icons.Default.History, contentDescription = null)
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("Remove", color = colorScheme.error) },
@@ -81,7 +108,13 @@ fun EditorTopBar(
                                 showMenu = false
                                 onDeleteClick()
                             },
-                            leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null, tint = colorScheme.error) }
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.Delete,
+                                    contentDescription = null,
+                                    tint = colorScheme.error
+                                )
+                            }
                         )
                     }
                 }

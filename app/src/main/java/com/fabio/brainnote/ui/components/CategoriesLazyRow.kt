@@ -19,11 +19,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.fabio.brainnote.domain.model.Category
+import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoriesLazyRow(
-    categories: List<Category>,
+    categories: ImmutableList<Category>,
     selectedCategoryId: Long,
     onCategoryClick: (Long) -> Unit
 ) {

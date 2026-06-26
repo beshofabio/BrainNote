@@ -1,6 +1,9 @@
 package com.fabio.brainnote.ui.screens.home.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,14 +17,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Schema
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,21 +34,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fabio.brainnote.domain.model.Note
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ClusterNoteCard(
     modifier: Modifier = Modifier,
     note: Note,
-    onClick: (Long) -> Unit
+    onClick: (Long) -> Unit,
+    onLongPress: ((Long) -> Unit)? = null
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val interactionSource = remember { MutableInteractionSource() }
 
     Box(
         modifier = modifier
             .padding(top = 8.dp, end = 8.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(15.dp)),
         contentAlignment = Alignment.BottomStart
     ) {
+
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.85f)
@@ -65,8 +74,14 @@ fun ClusterNoteCard(
         )
 
         ElevatedCard(
-            onClick = { onClick(note.id) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    interactionSource = interactionSource,
+                    indication = ripple(),
+                    onClick = { onClick(note.id) },
+                    onLongClick = onLongPress?.let { lambda -> { lambda(note.id) } }
+                ),
             shape = RoundedCornerShape(15.dp),
             elevation = CardDefaults.elevatedCardElevation(6.dp),
             colors = CardDefaults.elevatedCardColors(
@@ -83,11 +98,22 @@ fun ClusterNoteCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Schema,
-                        contentDescription = "Cluster",
-                        tint = colorScheme.primary
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Schema,
+                            contentDescription = "Cluster",
+                            tint = colorScheme.primary
+                        )
+                        if (note.isPinned) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                imageVector = Icons.Default.PushPin,
+                                contentDescription = "Pinned",
+                                modifier = Modifier.size(16.dp),
+                                tint = colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
                     Text(
                         text = "${note.linkedNotes.size + 1} Notes",
                         style = MaterialTheme.typography.labelMedium,

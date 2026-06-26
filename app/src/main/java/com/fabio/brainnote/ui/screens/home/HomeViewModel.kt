@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import com.fabio.brainnote.domain.model.Note
 import com.fabio.brainnote.domain.usecase.CategoryUseCases
 import com.fabio.brainnote.domain.usecase.NoteUseCases
+import com.fabio.brainnote.domain.usecase.link.InsertNoteLinkUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +20,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val categoryUseCases : CategoryUseCases,
-    private val noteUseCases : NoteUseCases
+    private val categoryUseCases: CategoryUseCases,
+    private val noteUseCases: NoteUseCases,
+    private val insertNoteLink: InsertNoteLinkUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -41,18 +45,16 @@ class HomeViewModel @Inject constructor(
                     } else {
                         currentSelectedId
                     }
-
-                    _uiState.update { currentState ->
-                        currentState.copy(
+                    _uiState.update {
+                        it.copy(
                             isLoading = false,
-                            categories = categories,
+                            categories = categories.toImmutableList(),
                             selectedCategoryId = activeCategoryId
                         )
                     }
-
                     observeNotesForCategory(activeCategoryId)
                 } else {
-                    _uiState.update { it.copy(isLoading = false, categories = emptyList()) }
+                    _uiState.update { it.copy(isLoading = false, categories = persistentListOf()) }
                 }
             }
         }
@@ -80,7 +82,6 @@ class HomeViewModel @Inject constructor(
 
     private fun applySearchFilter() {
         val query = _uiState.value.searchQuery
-
         val filteredNotes = if (query.isBlank()) {
             currentCategoryNotes
         } else {
@@ -89,12 +90,94 @@ class HomeViewModel @Inject constructor(
                         note.content.contains(query, ignoreCase = true)
             }
         }
-        
         val sortedNotes = filteredNotes.sortedWith(
-            compareByDescending<Note> { it.isPinned }
-                .thenByDescending { it.updatedAt }
+            compareByDescending<Note> { it.isPinned }.thenByDescending { it.updatedAt }
         )
+        _uiState.update { it.copy(filteredNotes = sortedNotes.toImmutableList()) }
+    }
 
-        _uiState.update { it.copy(filteredNotes = sortedNotes) }
+    fun onNoteLongPress(noteId: Long) {
+        if (!_uiState.value.isLinkingMode) {
+            _uiState.update {
+                it.copy(
+                    isLinkingMode = true,
+                    linkingRootNoteId = noteId,
+                    selectedForLinking = emptySet(),
+                    hasSelectedCluster = false
+                )
+            }
+        }
+    }
+
+    fun onNoteToggleForLinking(noteId: Long) {
+        val state = _uiState.value
+        if (noteId == state.linkingRootNoteId) return
+
+        val updated = if (noteId in state.selectedForLinking) {
+            state.selectedForLinking - noteId
+        } else {
+            state.selectedForLinking + noteId
+        }
+
+        val hasCluster = updated.any { selectedId ->
+            state.filteredNotes.find { it.id == selectedId }?.linkedNotes?.isNotEmpty() == true
+        }
+
+        _uiState.update {
+            it.copy(
+                selectedForLinking = updated,
+                hasSelectedCluster = hasCluster
+            )
+        }
+    }
+
+    fun onCancelLinking() {
+        _uiState.update {
+            it.copy(
+                isLinkingMode = false,
+                linkingRootNoteId = null,
+                selectedForLinking = emptySet(),
+                hasSelectedCluster = false
+            )
+        }
+    }
+
+    fun onConfirmLinking() {
+        val state = _uiState.value
+        val rootId = state.linkingRootNoteId ?: return
+        val targets = state.selectedForLinking.toList()
+
+        if (targets.isEmpty()) {
+            onCancelLinking()
+            return
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val existingClusterRoot = targets
+                .mapNotNull { targetId -> state.filteredNotes.find { it.id == targetId } }
+                .find { it.linkedNotes.isNotEmpty() }
+
+            if (existingClusterRoot != null) {
+                insertNoteLink(noteId = existingClusterRoot.id, linkedToId = rootId)
+                targets.forEach { targetId ->
+                    if (targetId != existingClusterRoot.id) {
+                        insertNoteLink(noteId = existingClusterRoot.id, linkedToId = targetId)
+                    }
+                }
+            } else {
+                targets.forEach { targetId ->
+                    insertNoteLink(noteId = rootId, linkedToId = targetId)
+                }
+            }
+        }
+
+        _uiState.update {
+            it.copy(
+                isLinkingMode = false,
+                linkingRootNoteId = null,
+                selectedForLinking = emptySet(),
+                hasSelectedCluster = false
+            )
+        }
     }
 }

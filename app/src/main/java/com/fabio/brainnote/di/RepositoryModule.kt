@@ -4,6 +4,7 @@ import com.fabio.brainnote.data.repository.AudioPlayerRepositoryImpl
 import com.fabio.brainnote.data.repository.CategoryRepositoryImpl
 import com.fabio.brainnote.data.repository.ChecklistRepositoryImpl
 import com.fabio.brainnote.data.repository.NoteHistoryRepositoryImpl
+import com.fabio.brainnote.data.repository.NoteLinkRepositoryImpl
 import com.fabio.brainnote.data.repository.NoteRepositoryImpl
 import com.fabio.brainnote.data.repository.ReminderRepositoryImpl
 import com.fabio.brainnote.data.repository.VoiceNoteRepositoryImpl
@@ -11,6 +12,7 @@ import com.fabio.brainnote.domain.repo.AudioPlayerRepository
 import com.fabio.brainnote.domain.repo.CategoryRepository
 import com.fabio.brainnote.domain.repo.ChecklistRepository
 import com.fabio.brainnote.domain.repo.NoteHistoryRepository
+import com.fabio.brainnote.domain.repo.NoteLinkRepository
 import com.fabio.brainnote.domain.repo.NoteRepository
 import com.fabio.brainnote.domain.repo.ReminderRepository
 import com.fabio.brainnote.domain.repo.VoiceNoteRepository
@@ -50,4 +52,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindNoteHistoryRepository(impl: NoteHistoryRepositoryImpl): NoteHistoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNoteLinkRepository(impl: NoteLinkRepositoryImpl): NoteLinkRepository
 }

@@ -5,6 +5,7 @@ import com.fabio.brainnote.domain.model.Note
 import com.fabio.brainnote.domain.model.NoteHistory
 import com.fabio.brainnote.domain.repo.AlarmScheduler
 import com.fabio.brainnote.domain.repo.AudioRecorderRepository
+import com.fabio.brainnote.domain.repo.ChecklistRepository
 import com.fabio.brainnote.domain.repo.ImageStorageRepository
 import com.fabio.brainnote.domain.repo.NoteHistoryRepository
 import com.fabio.brainnote.domain.repo.NoteRepository
@@ -17,8 +18,9 @@ import javax.inject.Inject
 class SaveFullNoteUseCase @Inject constructor(
     private val noteRepository: NoteRepository,
     private val historyRepository: NoteHistoryRepository,
-    private val reminderRepository : ReminderRepository,
+    private val reminderRepository: ReminderRepository,
     private val voiceNoteRepository: VoiceNoteRepository,
+    private val checklistRepository: ChecklistRepository,
     private val imageRepository: ImageStorageRepository,
     private val audioRepository: AudioRecorderRepository,
     private val alarmScheduler: AlarmScheduler,
@@ -28,6 +30,7 @@ class SaveFullNoteUseCase @Inject constructor(
         if (noteToSave.id != 0L) {
             val existingNote = noteRepository.getNoteById(noteToSave.id)
             if (existingNote != null) {
+
                 if (existingNote.imagePath != null && noteToSave.imagePath == null) {
                     imageRepository.deleteImage(existingNote.imagePath)
                 }
@@ -45,6 +48,13 @@ class SaveFullNoteUseCase @Inject constructor(
                     if (oldVoice.audioPath !in incomingVoicePaths) {
                         audioRepository.deleteFile(oldVoice.audioPath)
                         voiceNoteRepository.deleteVoiceNote(oldVoice.id)
+                    }
+                }
+
+                val incomingChecklistIds = noteToSave.checklist.map { it.id }.toSet()
+                existingNote.checklist.forEach { oldItem ->
+                    if (oldItem.id !in incomingChecklistIds) {
+                        checklistRepository.deleteItem(oldItem.id)
                     }
                 }
             }
@@ -65,6 +75,10 @@ class SaveFullNoteUseCase @Inject constructor(
 
         noteToSave.voiceNotes.forEach { voiceNote ->
             voiceNoteRepository.upsertVoiceNote(voiceNote, finalNoteId)
+        }
+
+        noteToSave.checklist.forEach { item ->
+            checklistRepository.upsertItem(item, finalNoteId)
         }
 
         val historyEntry = NoteHistory(

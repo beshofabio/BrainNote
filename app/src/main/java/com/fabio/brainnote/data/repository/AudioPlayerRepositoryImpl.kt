@@ -79,7 +79,6 @@ class AudioPlayerRepositoryImpl @Inject constructor(
                         )
                     }
                 }
-                // Updated to 32ms for smoother UI updates (approx 30fps)
                 delay(32)
             }
         }

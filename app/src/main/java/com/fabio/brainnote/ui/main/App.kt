@@ -18,17 +18,14 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.fabio.brainnote.navigations.NoteEditorRoute
 import com.fabio.brainnote.navigations.Screen
+import com.fabio.brainnote.navigations.clusterComposable
 import com.fabio.brainnote.navigations.homeComposable
 
 @Composable
-fun BrainNoteApp(
-) {
+fun BrainNoteApp() {
     val navController = rememberNavController()
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-
-    ) { innerPadding ->
+    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = Screen.HomeScreen.route,
@@ -46,22 +43,28 @@ fun BrainNoteApp(
                     towards = AnimatedContentTransitionScope.SlideDirection.End
                 )
             }
-        ){
+        ) {
             homeComposable(
                 navController = navController,
                 modifier = Modifier.padding(innerPadding)
             )
+
             composable(
-                route = "${Screen.NoteEditorScreen.route}/{noteId}",
+                route = "${Screen.NoteEditorScreen.route}/{noteId}?rootNoteId={rootNoteId}",
                 arguments = listOf(
-                    navArgument("noteId") { type = NavType.LongType }
+                    navArgument("noteId") { type = NavType.LongType },
+                    navArgument("rootNoteId") {
+                        type = NavType.LongType
+                        defaultValue = -1L
+                    }
                 )
             ) {
                 NoteEditorRoute(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-        }
 
+            clusterComposable(navController = navController)
+        }
     }
 }

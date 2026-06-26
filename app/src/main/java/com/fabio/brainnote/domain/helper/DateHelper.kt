@@ -13,7 +13,6 @@ fun Long.formatToDate(): String {
 
 fun Long.formatToDateTime(): String {
     val date = Date(this)
-    // h:mm a provides 12-hour format with AM/PM
     val formatter = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
     return formatter.format(date)
 }

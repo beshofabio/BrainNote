@@ -18,11 +18,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fabio.brainnote.domain.model.NoteHistory
+import kotlinx.collections.immutable.ImmutableList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteHistoryBottomSheet(
-    historyList: List<NoteHistory>,
+    historyList: ImmutableList<NoteHistory>,
     onDismiss: () -> Unit
 ) {
     ModalBottomSheet(

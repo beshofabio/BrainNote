@@ -42,25 +42,20 @@ fun VoiceNotePlayer(
     onRemoveClick: (() -> Unit)? = null,
     switchColor: Boolean = false
 ) {
-    // 1. Progress Source (Normalized 0..1)
     val rawProgress = if (totalDurationMs <= 0) 0f
     else (currentPositionMs.toFloat() / totalDurationMs).coerceIn(0f, 1f)
 
-    // 2. Interpolated progress for liquid-smooth movement
     val animatedProgress by animateFloatAsState(
         targetValue = rawProgress,
         animationSpec = if (isPlaying) tween(durationMillis = 48, easing = LinearEasing) else snap(),
         label = "playbackProgress"
     )
 
-    // 3. Robust Completion Logic
     val isFinished = !isPlaying && currentPositionMs > 0 && (rawProgress > 0.95f || (totalDurationMs > 0 && currentPositionMs >= totalDurationMs - 150))
     val finalProgress = if (isFinished) 1f else animatedProgress
 
-    // 4. Cursor Visibility Logic
     val isCursorVisible = (isPlaying || currentPositionMs > 0) && finalProgress < 1f
 
-    // Formatting time labels
     val minutes = (currentPositionMs / 1000) / 60
     val seconds = (currentPositionMs / 1000) % 60
     val totalMinutes = durationSeconds / 60

@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8")
     // Hilt (Dependency Injection)
     implementation(libs.dagger.hilt.android)
     implementation(libs.androidx.constraintlayout)

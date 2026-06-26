@@ -12,22 +12,29 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface NoteDao {
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT * FROM ${NoteEntity.TABLE_NAME}
         WHERE ${NoteEntity.COLUMN_ID} = :noteId
-    """)
+    """
+    )
     fun getNoteFullDetails(noteId: Long): FullNoteDetails?
 
     @Transaction
     @Query("""
         SELECT * FROM ${NoteEntity.TABLE_NAME}
         WHERE ${NoteEntity.COLUMN_CATEGORY_ID} = :catId
+        AND ${NoteEntity.COLUMN_ID} NOT IN (
+            SELECT ${NoteLinkEntity.COLUMN_LINKED_TO_ID}
+            FROM ${NoteLinkEntity.TABLE_NAME}
+        )
         ORDER BY isPinned DESC, updatedAt DESC
     """)
     fun getNotesFullDetailsByCategory(catId: Long): Flow<List<FullNoteDetails>>
 
     @Transaction
-    @Query("""
+    @Query(
+        """
         SELECT * FROM ${NoteEntity.TABLE_NAME} 
         WHERE ${NoteEntity.COLUMN_ID} = :rootId
         OR ${NoteEntity.COLUMN_ID} IN (
@@ -35,7 +42,8 @@ interface NoteDao {
             FROM ${NoteLinkEntity.TABLE_NAME} 
             WHERE ${NoteLinkEntity.COLUMN_NOTE_ID} = :rootId
         )
-    """)
+    """
+    )
     fun getClusterNotes(rootId: Long): Flow<List<FullNoteDetails>>
 
     @Upsert
