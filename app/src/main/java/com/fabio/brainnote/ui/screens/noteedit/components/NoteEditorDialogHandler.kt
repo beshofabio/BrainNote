@@ -27,7 +27,6 @@ fun NoteEditorDialogHandler(
     onDismissDialog: () -> Unit,
     onSaveNote: () -> Unit,
     onDeleteNote: () -> Unit,
-    onBackClick: () -> Unit,
     onConfirmRemoveChecklist: (Int) -> Unit,
     onConfirmRemoveVoice: (Int) -> Unit,
     onConfirmRemoveReminder: (Int) -> Unit,

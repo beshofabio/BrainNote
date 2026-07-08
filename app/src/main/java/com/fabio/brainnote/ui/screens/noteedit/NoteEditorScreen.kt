@@ -120,7 +120,6 @@ fun NoteEditorScreen(
         onDismissDialog = onDismissDialog,
         onSaveNote = onSaveNote,
         onDeleteNote = onDeleteNote,
-        onBackClick = onBackClick,
         onConfirmRemoveChecklist = onConfirmRemoveChecklist,
         onConfirmRemoveVoice = onConfirmRemoveVoice,
         onConfirmRemoveReminder = onConfirmRemoveReminder,
